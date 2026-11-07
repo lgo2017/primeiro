@@ -1,0 +1,124 @@
+import pygame
+import random
+
+# Inicialização do Pygame
+pygame.init()
+
+# Configurações da Tela
+LARGURA = 800
+ALTURA = 400
+tela = pygame.display.set_mode((LARGURA, ALTURA))
+pygame.display.set_caption("Minijogo do Sonic")
+
+# Cores
+AZUL_CLARO = (135, 206, 235)
+AZUL_SONIC = (0, 114, 206)
+VERMELHO = (255, 69, 0)
+PRETO = (0, 0, 0)
+BRANCO = (255, 255, 255)
+
+# Relógio para controlar os quadros por segundo (FPS)
+relogio = pygame.time.Clock()
+fonte = pygame.font.SysFont(None, 36)
+
+def jogo():
+    # Variáveis do Sonic (Jogador)
+    sonic_x = 100
+    sonic_y = 300
+    sonic_largura = 30
+    sonic_altura = 40
+    velocidade_y = 0
+    gravidade = 0.8
+    no_chao = True
+
+    # Variáveis do Obstáculo (Anel/Espinho)
+    obstaculo_x = LARGURA
+    obstaculo_y = 310
+    obstaculo_largura = 20
+    obstaculo_altura = 30
+    velocidade_obstaculo = 6
+
+    pontos = 0
+    rodando = True
+
+    while rodando:
+        tela.fill(AZUL_CLARO)
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE and no_chao:
+                    velocidade_y = -14
+                    no_chao = False
+
+        # Física do pulo
+        velocidade_y += gravidade
+        sonic_y += velocidade_y
+
+        # Colisão com o chão
+        if sonic_y >= 300:
+            sonic_y = 300
+            velocidade_y = 0
+            no_chao = True
+
+        # Movimento do obstáculo
+        obstaculo_x -= velocidade_obstaculo
+        if obstaculo_x < -20:
+            obstaculo_x = LARGURA + random.randint(0, 200)
+            pontos += 1
+            velocidade_obstaculo += 0.2  # Aumenta a dificuldade gradualmente
+
+        # Detecção de Colisão (Retângulos)
+        ret_sonic = pygame.Rect(sonic_x, sonic_y, sonic_largura, sonic_altura)
+        ret_obstaculo = pygame.Rect(obstaculo_x, obstaculo_y, obstaculo_largura, obstaculo_altura)
+
+        if ret_sonic.colliderect(ret_obstaculo):
+            rodando = False  # Game Over
+
+        # Desenhar Chão
+        pygame.draw.rect(tela, (34, 139, 34), (0, 340, LARGURA, 60))
+
+        # Desenhar Sonic (representado por um bloco azul)
+        pygame.draw.rect(tela, AZUL_SONIC, ret_sonic)
+        # Detalhe visual simulando os espinhos/cabelo do Sonic
+        pygame.draw.rect(tela, BRANCO, (sonic_x + 15, sonic_y + 5, 15, 10))
+
+        # Desenhar Obstáculo
+        pygame.draw.rect(tela, VERMELHO, ret_obstaculo)
+
+        # Placar na tela
+        texto_pontos = fonte.render(f"Pontos: {int(pontos)}", True, PRETO)
+        tela.blit(texto_pontos, (20, 20))
+
+        pygame.display.flip()
+        relogio.tick(60)
+
+    # Tela de Game Over simples
+    while True:
+        tela.fill(PRETO)
+        texto_fim = fonte.render(f"GAME OVER! Pontuação Final: {int(pontos)}", True, BRANCO)
+        texto_reiniciar = fonte.render("Feche a janela para sair.", True, BRANCO)
+        
+        tela.blit(texto_fim, (LARGURA // 2 - 180, ALTURA // 2 - 30))
+        tela.blit(texto_reiniciar, (LARGURA // 2 - 140, ALTURA // 2 + 10))
+        pygame.display.flip()
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+if __name__ == "__main__":
+    while True:
+        jogo()
+
+
+
+
+
+
+
+
+
